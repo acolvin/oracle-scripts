@@ -2,7 +2,7 @@ set lines 150
 set pages 1000
 col Diskgroup for a10
 col Disk for a40
-col "Size (MB)" for 999,999
+col "Size (MB)" for 999,999,999
 select 
   g.name "Diskgroup", 
   d.path "Disk", 
