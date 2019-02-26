@@ -1,7 +1,7 @@
 set lines 150
 set pages 1000
-col "Diskgroup" for a10
-col "Fail Group" for a15
+col "Diskgroup" for a25
+col "Fail Group" for a20
 select
   g.name "Diskgroup",
   d.failgroup "Fail Group",
