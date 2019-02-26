@@ -6,7 +6,9 @@
 # Script to run datapatch and utlrp when a database SID is passed as a parameter
 # Multiple SIDs can be passed as a comma-separated list
 #
-# Expects to be able to run Tanel Poder's findhomes.sh via sudo
+# Expects to be able to run Tanel Poder's findhomes.sh via sudo in /usr/local/bin - sudo rule is:
+# oracle ALL=(root) NOPASSWD:/usr/local/bin/findhomes.sh
+#
 # findhomes.sh can be found at https://github.com/tanelpoder/tpt-oracle/blob/master/tools/unix/findhomes.sh
 #
 # Script creates a separate log file for each database instance
@@ -14,7 +16,7 @@
 #
 
 gather_oracle_env () {
-  export ORACLE_HOME=`sudo findhomes.sh | grep $ORACLE_SID | sed 's/ / /' | awk '{print $3}'`
+  export ORACLE_HOME=`sudo /usr/local/bin/findhomes.sh | grep $ORACLE_SID | sed 's/ / /' | awk '{print $3}'`
   export PATH=$ORACLE_HOME/OPatch:$ORACLE_HOME/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
 }
 
