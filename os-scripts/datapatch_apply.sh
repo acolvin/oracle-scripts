@@ -21,7 +21,6 @@ gather_oracle_env () {
 }
 
 open_pdbs () {
-#  sqlplus -S /nolog 1>>/tmp/post_patch_$ORACLE_SID.log 2>&1 << ENDSQLPLUS
   printf "\n**************************\n* Opening PDBs on $ORACLE_SID *\n**************************\n" >> $LOGFILE
   sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
     conn / as sysdba
@@ -32,7 +31,6 @@ ENDSQLPLUS
 
 show_pdbs () {
   printf "\n****************************\n* Status of PDBs on $ORACLE_SID *\n****************************\n" >> $LOGFILE
-#  sqlplus -S /nolog 1>>/tmp/post_patch_$ORACLE_SID.log 2>&1 << ENDSQLPLUS
   sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
     conn / as sysdba
     show pdbs;
@@ -43,7 +41,6 @@ ENDSQLPLUS
 run_utlrp () {
   printf "running utlrp on $ORACLE_SID..."
   printf "\n***************************\n* Running utlrp on $ORACLE_SID *\n***************************\n" >> $LOGFILE
-#  sqlplus -S /nolog 1>>/tmp/post_patch_$ORACLE_SID.log 2>&1 << ENDSQLPLUS
   sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
     conn / as sysdba
     @?/rdbms/admin/utlrp.sql
@@ -55,13 +52,26 @@ ENDSQLPLUS
 run_datapatch () {
   printf "\nRunning datapatch in $ORACLE_HOME/OPatch for $ORACLE_SID..."
   printf "\n******************************\n* Running datapatch on $ORACLE_SID *\n*******************************\n" >> $LOGFILE
-#  cd $ORACLE_HOME/OPatch; ./datapatch -db $ORACLE_SID -verbose >> /tmp/post_patch_$ORACLE_SID.log
   cd $ORACLE_HOME/OPatch; ./datapatch -db $ORACLE_SID -verbose >> $LOGFILE
   if [[ $? -eq 0 ]] ; then
     printf "COMPLETE\n"
   else
     printf "\n*** ERROR in datapatch run, check $LOGFILE ***\n"
   fi
+}
+
+check_registry () {
+  CONTAINERS="V\$CONTAINERS"
+  printf "\n****************************\n* CDB_REGISTRY_SQL_PATCH on $ORACLE_SID *\n****************************\n" >> $LOGFILE
+  sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
+    conn / as sysdba
+    col name for a15
+    col action_time for a40
+    col status for a15
+    set lines 150
+    select c.name, r.patch_id, r.status, r.action_time from cdb_registry_sqlpatch r, $CONTAINERS c where c.con_id=r.con_id and r.action_time > trunc(sysdate) - 7 order by 1,2;
+    exit;
+ENDSQLPLUS
 }
 
 export INSTANCES=$1
@@ -77,5 +87,6 @@ do
   show_pdbs
   run_datapatch
   run_utlrp
+  check_registry
   show_pdbs
 done
