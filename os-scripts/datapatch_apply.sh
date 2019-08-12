@@ -16,7 +16,7 @@
 #
 
 gather_oracle_env () {
-  export ORACLE_HOME=`sudo /usr/local/bin/findhomes.sh | grep $ORACLE_SID | sed 's/ / /' | awk '{print $3}'`
+  export ORACLE_HOME=`sudo /usr/local/bin/findhomes.sh | grep -w ora_pmon{$ORACLE_SID} | sed 's/ / /' | awk '{print $3}'`
   export PATH=$ORACLE_HOME/OPatch:$ORACLE_HOME/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
 }
 
