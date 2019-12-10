@@ -44,7 +44,7 @@ ENDSQLPLUS
 run_utlrp () {
   printf "running utlrp on $ORACLE_SID..."
   printf "\n***************************\n* Running utlrp on $ORACLE_SID *\n***************************\n" >> $LOGFILE
-  $ORACLE_HOME/perl/bin/perl $ORACLE_HOME/rdbms/admin/catcon.pl -d $ORACLE_HOME/rdbms/admin -l /tmp -b utlrp_$ORACLE_SID utlrp.sql 1>>$LOGFILE 2>&1
+  $ORACLE_HOME/perl/bin/perl $ORACLE_HOME/rdbms/admin/catcon.pl -d $ORACLE_HOME/rdbms/admin -l /tmp -b utlrp_$ORACLE_SID_ utlrp.sql 1>>$LOGFILE 2>&1
 #  sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
 #    conn / as sysdba
 #    @?/rdbms/admin/utlrp.sql
