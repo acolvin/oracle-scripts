@@ -1,6 +1,6 @@
 set pages 1000
 set lines 150
-col "Diskgroup" for a10
+col "Diskgroup" for a16
 col "Attribute" for a30
 col "Value" for a20
 select
