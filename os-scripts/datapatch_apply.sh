@@ -6,10 +6,10 @@
 # Script to run datapatch and utlrp when a database SID is passed as a parameter
 # Multiple SIDs can be passed as a comma-separated list
 #
-# Expects to be able to run Tanel Poder's findhomes.sh via sudo in /usr/local/bin - sudo rule is:
+# Expects to be able to run Andy Colvin's modified findhomes.sh (preferably owned by root) via sudo in /usr/local/bin - sudo rule is:
 # oracle ALL=(root) NOPASSWD:/usr/local/bin/findhomes.sh
 #
-# findhomes.sh can be found at https://github.com/tanelpoder/tpt-oracle/blob/master/tools/unix/findhomes.sh
+# findhomes.sh can be found at https://github.com/acolvin/oracle-scripts/blob/master/os-scripts/findhomes.sh
 #
 # Script creates a separate log file for each database instance
 # Modify LOGFILE= variable if you don't like the name
