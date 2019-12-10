@@ -15,6 +15,9 @@
 # Modify LOGFILE= variable if you don't like the name
 #
 
+### Version history
+# 20191209 - Update utlrp to use catcon.pl, modify logfile entry
+
 gather_oracle_env () {
   export ORACLE_HOME=`sudo /usr/local/bin/findhomes.sh | grep -w ora_pmon_${ORACLE_SID} | sed 's/ / /' | awk '{print $3}'`
   export PATH=$ORACLE_HOME/OPatch:$ORACLE_HOME/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
@@ -41,18 +44,19 @@ ENDSQLPLUS
 run_utlrp () {
   printf "running utlrp on $ORACLE_SID..."
   printf "\n***************************\n* Running utlrp on $ORACLE_SID *\n***************************\n" >> $LOGFILE
-  sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
-    conn / as sysdba
-    @?/rdbms/admin/utlrp.sql
-    exit;
-ENDSQLPLUS
+  $ORACLE_HOME/perl/bin/perl $ORACLE_HOME/rdbms/admin/catcon.pl -d $ORACLE_HOME/rdbms/admin -l /tmp -b utlrp_$ORACLE_SID utlrp.sql 1>>$LOGFILE 2>&1
+#  sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
+#    conn / as sysdba
+#    @?/rdbms/admin/utlrp.sql
+#    exit;
+#ENDSQLPLUS
   printf "COMPLETE\n"
 }
 
 run_datapatch () {
   printf "\nRunning datapatch in $ORACLE_HOME/OPatch for $ORACLE_SID..."
   printf "\n******************************\n* Running datapatch on $ORACLE_SID *\n*******************************\n" >> $LOGFILE
-  cd $ORACLE_HOME/OPatch; ./datapatch -db $ORACLE_SID -verbose >> $LOGFILE
+  cd $ORACLE_HOME/OPatch; ./datapatch -db $ORACLE_SID -verbose 1>>$LOGFILE 2>&1
   if [[ $? -eq 0 ]] ; then
     printf "COMPLETE\n"
   else
@@ -83,7 +87,7 @@ do
   export LOGFILE=/tmp/post_patch_${ORACLE_SID}_${LOGDATE}.log
   printf "\n************\nRunning post-patch steps on $ORACLE_SID at `date "+%Y/%m/%d_%R"`\nLog file can be found in $LOGFILE\n"
   gather_oracle_env
-  open_pdbs
+#  open_pdbs
   show_pdbs
   run_datapatch
   run_utlrp
