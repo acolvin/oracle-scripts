@@ -4,40 +4,53 @@
 # Copyright 2018 Andy Colvin. All rights reserved. More info at https://oracle-ninja.com
 #
 # Script to run datapatch and utlrp when a database SID is passed as a parameter
-# Multiple SIDs can be passed as a comma-separated list
+# Multiple SIDs can be passed as a comma-separated list via the -d argument
+# If you want the script to attempt to open PDBs before running, include -o
 #
-# Expects to be able to run Andy Colvin's modified findhomes.sh (preferably owned by root) via sudo in /usr/local/bin - sudo rule is:
+# Example - ./datapatch_apply.sh -d db1,db2,db3,db4
+#
+# Expects to be able to run Tanel Poder's findhomes.sh via sudo in /usr/local/bin - sudo rule is:
 # oracle ALL=(root) NOPASSWD:/usr/local/bin/findhomes.sh
 #
-# findhomes.sh can be found at https://github.com/acolvin/oracle-scripts/blob/master/os-scripts/findhomes.sh
+# findhomes.sh can be found at https://github.com/tanelpoder/tpt-oracle/blob/master/tools/unix/findhomes.sh
 #
 # Script creates a separate log file for each database instance
 # Modify LOGFILE= variable if you don't like the name
 #
 
-### Version history
-# 20191209 - Update utlrp to use catcon.pl, modify logfile entry
-
+export OPEN_PDBS=0
 export VERSION_NUMBER=20191231
 
 usage () {
    echo "Usage:
-     $0 [-v] [-h]
-     -v - Print version
-     -h - Show usage
+     $0 -p -d [-o] [-h]
+     -p - Number of datapatch operations to run in parallel
+     -o - Option to run 'alter pluggable database all open' before running datapatch
+     -d - Comma-separated list of database instances to run datapatch
+     -v - Version
+     -h - Usage
    "
    exit 1
 }
 
 print_version () {
-  printf "datapatch_apply.sh version $VERSION_NUMBER\n"
+  printf "datapatch_apply.sh by Andy Colvin, version $VERSION_NUMBER\n"
   exit 1
 }
 
 #Grab Options
-while getopts v option
+while getopts ohvp:d: option
 do
  case "$option" in
+   p) 
+     export PARALLEL=$OPTARG
+      ;;
+   o)
+     export OPEN_PDBS=1
+     ;;
+   d)
+     export INSTANCES=$OPTARG
+      ;;
    v)
      print_version 
       ;;
@@ -74,19 +87,18 @@ ENDSQLPLUS
 run_utlrp () {
   printf "running utlrp on $ORACLE_SID..."
   printf "\n***************************\n* Running utlrp on $ORACLE_SID *\n***************************\n" >> $LOGFILE
-  $ORACLE_HOME/perl/bin/perl $ORACLE_HOME/rdbms/admin/catcon.pl -d $ORACLE_HOME/rdbms/admin -l /tmp -b utlrp_$ORACLE_SID_ utlrp.sql 1>>$LOGFILE 2>&1
-#  sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
-#    conn / as sysdba
-#    @?/rdbms/admin/utlrp.sql
-#    exit;
-#ENDSQLPLUS
+  sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
+    conn / as sysdba
+    @?/rdbms/admin/utlrp.sql
+    exit;
+ENDSQLPLUS
   printf "COMPLETE\n"
 }
 
 run_datapatch () {
   printf "\nRunning datapatch in $ORACLE_HOME/OPatch for $ORACLE_SID..."
   printf "\n******************************\n* Running datapatch on $ORACLE_SID *\n*******************************\n" >> $LOGFILE
-  cd $ORACLE_HOME/OPatch; ./datapatch -db $ORACLE_SID -verbose 1>>$LOGFILE 2>&1
+  cd $ORACLE_HOME/OPatch; ./datapatch -db $ORACLE_SID -verbose >> $LOGFILE
   if [[ $? -eq 0 ]] ; then
     printf "COMPLETE\n"
   else
@@ -108,7 +120,10 @@ check_registry () {
 ENDSQLPLUS
 }
 
-export INSTANCES=$1
+#export INSTANCES=$1
+
+printf "\n******  database instances to be patched are $INSTANCES ******\n"
+printf "**** OPEN_PDBS value is $OPEN_PDBS *****\n"
 
 for ORACLE_SID in $(echo $INSTANCES | sed "s/,/ /g")
 do
@@ -116,11 +131,17 @@ do
   export LOGDATE=`date +"%Y%m%d%H%M"`
   export LOGFILE=/tmp/post_patch_${ORACLE_SID}_${LOGDATE}.log
   printf "\n************\nRunning post-patch steps on $ORACLE_SID at `date "+%Y/%m/%d_%R"`\nLog file can be found in $LOGFILE\n"
-  gather_oracle_env
-#  open_pdbs
-  show_pdbs
-  run_datapatch
-  run_utlrp
-  check_registry
-  show_pdbs
+#  gather_oracle_env
+  if [ $OPEN_PDBS -eq 1 ]
+  then
+    printf "**** opening PDBs ****\n"
+  open_pdbs
+  else
+    printf "**** Skipping PDB Open ****\n"
+  fi
+#  show_pdbs
+#  run_datapatch
+#  run_utlrp
+#  check_registry
+#  show_pdbs
 done

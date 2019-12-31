@@ -18,36 +18,6 @@
 ### Version history
 # 20191209 - Update utlrp to use catcon.pl, modify logfile entry
 
-export VERSION_NUMBER=20191231
-
-usage () {
-   echo "Usage:
-     $0 [-v] [-h]
-     -v - Print version
-     -h - Show usage
-   "
-   exit 1
-}
-
-print_version () {
-  printf "datapatch_apply.sh version $VERSION_NUMBER\n"
-  exit 1
-}
-
-#Grab Options
-while getopts v option
-do
- case "$option" in
-   v)
-     print_version 
-      ;;
-   *)
-     usage
-      ;;
- esac
-done 2>/dev/null
-shift $(($OPTIND-1))
-
 gather_oracle_env () {
   export ORACLE_HOME=`sudo /usr/local/bin/findhomes.sh | grep -w ora_pmon_${ORACLE_SID} | sed 's/ / /' | awk '{print $3}'`
   export PATH=$ORACLE_HOME/OPatch:$ORACLE_HOME/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
