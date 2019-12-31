@@ -23,7 +23,7 @@ export VERSION_NUMBER=20191231
 
 usage () {
    echo "Usage:
-     $0 [-v] [-h]
+     $0 [-v] [-h] <comma separated list of ORACLE_SIDs>
      -v - Print version
      -h - Show usage
    "
