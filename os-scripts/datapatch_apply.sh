@@ -17,6 +17,7 @@
 
 ### Version history
 # 20191209 - Update utlrp to use catcon.pl, modify logfile entry
+# 20191231 - Update with getopts
 
 export VERSION_NUMBER=20191231
 
