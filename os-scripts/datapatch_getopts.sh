@@ -113,8 +113,8 @@ check_registry () {
 ENDSQLPLUS
 }
 
-printf "\n****** database instances to be patched are \n$INSTANCES \n******\n"
-printf "**** OPEN_PDBS value is $OPEN_PDBS *****\n"
+printf "\n************************* \nThe following instances will be patched \n$INSTANCES \n*************************\n"
+#printf "**** OPEN_PDBS value is $OPEN_PDBS *****\n"
 
 for ORACLE_SID in $(echo $INSTANCES | sed "s/,/ /g")
 do
@@ -122,15 +122,15 @@ do
   export LOGDATE=`date +"%Y%m%d%H%M"`
   export LOGFILE=/tmp/post_patch_${ORACLE_SID}_${LOGDATE}.log
   printf "$ORACLE_SID \n"
-#  gather_oracle_env
+  gather_oracle_env
+  printf "\n************\nRunning post-patch steps on $ORACLE_SID at `date "+%Y/%m/%d_%R"`\nLog file can be found in $LOGFILE\n"
   if [ $OPEN_PDBS -eq 1 ]
   then
-    printf "**** opening PDBs ****\n"
+    printf "Opening PDBs for $ORACLE_SID\n"
   open_pdbs
   else
-    printf "**** Skipping PDB Open ****\n"
+    printf "Skipping PDB Open\n"
   fi
-  printf "\n************\nRunning post-patch steps on $ORACLE_SID at `date "+%Y/%m/%d_%R"`\nLog file can be found in $LOGFILE\n"
   show_pdbs
   run_datapatch
   run_utlrp
