@@ -20,26 +20,25 @@
 
 export OPEN_PDBS=0
 export VERSION_NUMBER=20191231
+export VERBOSE=0
+export TEST_MODE=0
 export INSTANCES=`pgrep -l ora_pmon | cut -f3 -d "_"`
 
 usage () {
+   printf "datapatch_apply.sh by Andy Colvin, version $VERSION_NUMBER\n"
    echo "Usage:
      $0 -d [-o] [-h]
      -o - Option to run 'alter pluggable database all open' before running datapatch
      -d - Comma-separated list of database instances to run datapatch
-     -v - Version
+     -v - Verbose mode
+     -t - Test mode - skips datapatch and utlrp
      -h - Usage
    "
    exit 1
 }
 
-print_version () {
-  printf "datapatch_apply.sh by Andy Colvin, version $VERSION_NUMBER\n"
-  exit 1
-}
-
 #Grab Options
-while getopts ohvd: option
+while getopts ohvtd: option
 do
  case "$option" in
    o)
@@ -49,7 +48,10 @@ do
      export INSTANCES=$OPTARG
       ;;
    v)
-     print_version 
+     export VERBOSE=1
+      ;;
+   t)
+     export TEST_MODE=1
       ;;
    *)
      usage
@@ -61,6 +63,10 @@ shift $(($OPTIND-1))
 gather_oracle_env () {
   export ORACLE_HOME=`sudo /usr/local/bin/findhomes.sh | grep -w ora_pmon_${ORACLE_SID} | sed 's/ / /' | awk '{print $3}'`
   export PATH=$ORACLE_HOME/OPatch:$ORACLE_HOME/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
+  if [ $VERBOSE -eq 1 ]
+  then
+    printf "\n ORACLE_HOME=$ORACLE_HOME \n"
+  fi
 }
 
 open_pdbs () {
@@ -92,6 +98,17 @@ run_datapatch () {
   printf "\nRunning datapatch in $ORACLE_HOME/OPatch for $ORACLE_SID..."
   printf "\n******************************\n* Running datapatch on $ORACLE_SID *\n*******************************\n" >> $LOGFILE
   cd $ORACLE_HOME/OPatch; ./datapatch -db $ORACLE_SID -verbose >> $LOGFILE
+  if [[ $? -eq 0 ]] ; then
+    printf "COMPLETE\n"
+  else
+    printf "\n*** ERROR in datapatch run, check $LOGFILE ***\n"
+  fi
+}
+
+run_datapatch_dry () {
+  printf "\nRunning datapatch in prereq mode in $ORACLE_HOME/OPatch for $ORACLE_SID..."
+  printf "\n******************************\n* Running datapatch on $ORACLE_SID *\n*******************************\n" >> $LOGFILE
+  cd $ORACLE_HOME/OPatch; ./datapatch -prereq -db $ORACLE_SID -verbose >> $LOGFILE
   if [[ $? -eq 0 ]] ; then
     printf "COMPLETE\n"
   else
@@ -132,8 +149,14 @@ do
     printf "Skipping PDB Open\n"
   fi
   show_pdbs
-  run_datapatch
-  run_utlrp
-  check_registry
+  if [ $TEST_MODE -eq 0 ]
+  then
+    run_datapatch
+    run_utlrp
+    check_registry
+  else 
+    run_datapatch_dry
+    check_registry
+  fi
   show_pdbs
 done
