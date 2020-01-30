@@ -20,6 +20,7 @@
 
 export OPEN_PDBS=0
 export VERSION_NUMBER=20191231
+export INSTANCES=`pgrep -l ora_pmon | cut -f3 -d "_"`
 
 usage () {
    echo "Usage:
