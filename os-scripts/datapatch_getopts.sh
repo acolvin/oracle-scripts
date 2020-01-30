@@ -123,7 +123,7 @@ ENDSQLPLUS
 
 #export INSTANCES=$1
 
-printf "\n******  database instances to be patched are $INSTANCES ******\n"
+printf "\n******  database instances to be patched are \n $INSTANCES \n******\n"
 printf "**** OPEN_PDBS value is $OPEN_PDBS *****\n"
 
 for ORACLE_SID in $(echo $INSTANCES | sed "s/,/ /g")
