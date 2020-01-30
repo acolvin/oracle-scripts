@@ -22,7 +22,7 @@ export OPEN_PDBS=0
 export VERSION_NUMBER=20191231
 export VERBOSE=0
 export TEST_MODE=0
-export INSTANCES=`pgrep -l ora_pmon | cut -f3 -d "_"`
+export INSTANCES=`sudo findhomes.sh | grep ora_pmon| cut -f3 -d "_" | cut -f1 -d " "`
 
 usage () {
    printf "datapatch_apply.sh by Andy Colvin, version $VERSION_NUMBER\n"
@@ -138,9 +138,8 @@ do
   export ORACLE_SID
   export LOGDATE=`date +"%Y%m%d%H%M"`
   export LOGFILE=/tmp/post_patch_${ORACLE_SID}_${LOGDATE}.log
-  printf "$ORACLE_SID \n"
-  gather_oracle_env
   printf "\n************\nRunning post-patch steps on $ORACLE_SID at `date "+%Y/%m/%d_%R"`\nLog file can be found in $LOGFILE\n"
+  gather_oracle_env
   if [ $OPEN_PDBS -eq 1 ]
   then
     printf "Opening PDBs for $ORACLE_SID\n"
