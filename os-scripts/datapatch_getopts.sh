@@ -88,11 +88,7 @@ ENDSQLPLUS
 run_utlrp () {
   printf "running utlrp on $ORACLE_SID..."
   printf "\n***************************\n* Running utlrp on $ORACLE_SID *\n***************************\n" >> $LOGFILE
-  sqlplus -S /nolog 1>>$LOGFILE 2>&1 << ENDSQLPLUS
-    conn / as sysdba
-    @?/rdbms/admin/utlrp.sql
-    exit;
-ENDSQLPLUS
+  $ORACLE_HOME/perl/bin/perl $ORACLE_HOME/rdbms/admin/catcon.pl -d $ORACLE_HOME/rdbms/admin -l /tmp -b utlrp_$ORACLE_SID_ utlrp.sql 1>>$LOGFILE 2>&1
   printf "COMPLETE\n"
 }
 
@@ -123,7 +119,7 @@ ENDSQLPLUS
 
 #export INSTANCES=$1
 
-printf "\n******  database instances to be patched are \n $INSTANCES \n******\n"
+printf "\n****** database instances to be patched are \n$INSTANCES \n******\n"
 printf "**** OPEN_PDBS value is $OPEN_PDBS *****\n"
 
 for ORACLE_SID in $(echo $INSTANCES | sed "s/,/ /g")
@@ -131,7 +127,6 @@ do
   export ORACLE_SID
   export LOGDATE=`date +"%Y%m%d%H%M"`
   export LOGFILE=/tmp/post_patch_${ORACLE_SID}_${LOGDATE}.log
-  printf "\n************\nRunning post-patch steps on $ORACLE_SID at `date "+%Y/%m/%d_%R"`\nLog file can be found in $LOGFILE\n"
 #  gather_oracle_env
   if [ $OPEN_PDBS -eq 1 ]
   then
@@ -140,9 +135,10 @@ do
   else
     printf "**** Skipping PDB Open ****\n"
   fi
-#  show_pdbs
-#  run_datapatch
-#  run_utlrp
-#  check_registry
-#  show_pdbs
+  printf "\n************\nRunning post-patch steps on $ORACLE_SID at `date "+%Y/%m/%d_%R"`\nLog file can be found in $LOGFILE\n"
+  show_pdbs
+  run_datapatch
+  run_utlrp
+  check_registry
+  show_pdbs
 done
