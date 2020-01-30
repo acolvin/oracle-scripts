@@ -24,8 +24,7 @@ export INSTANCES=`pgrep -l ora_pmon | cut -f3 -d "_"`
 
 usage () {
    echo "Usage:
-     $0 -p -d [-o] [-h]
-     -p - Number of datapatch operations to run in parallel
+     $0 -d [-o] [-h]
      -o - Option to run 'alter pluggable database all open' before running datapatch
      -d - Comma-separated list of database instances to run datapatch
      -v - Version
@@ -40,12 +39,9 @@ print_version () {
 }
 
 #Grab Options
-while getopts ohvp:d: option
+while getopts ohvd: option
 do
  case "$option" in
-   p) 
-     export PARALLEL=$OPTARG
-      ;;
    o)
      export OPEN_PDBS=1
      ;;
@@ -117,8 +113,6 @@ check_registry () {
 ENDSQLPLUS
 }
 
-#export INSTANCES=$1
-
 printf "\n****** database instances to be patched are \n$INSTANCES \n******\n"
 printf "**** OPEN_PDBS value is $OPEN_PDBS *****\n"
 
@@ -127,6 +121,7 @@ do
   export ORACLE_SID
   export LOGDATE=`date +"%Y%m%d%H%M"`
   export LOGFILE=/tmp/post_patch_${ORACLE_SID}_${LOGDATE}.log
+  printf "$ORACLE_SID \n"
 #  gather_oracle_env
   if [ $OPEN_PDBS -eq 1 ]
   then
