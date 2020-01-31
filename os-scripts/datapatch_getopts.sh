@@ -3,23 +3,27 @@
 #
 # Copyright 2018 Andy Colvin. All rights reserved. More info at https://oracle-ninja.com
 #
-# Script to run datapatch and utlrp when a database SID is passed as a parameter
+# Script to run datapatch and utlrp after patching an Oracle home. Default behavior will run against all databbases.
 # Multiple SIDs can be passed as a comma-separated list via the -d argument
 # If you want the script to attempt to open PDBs before running, include -o
 #
 # Example - ./datapatch_apply.sh -d db1,db2,db3,db4
 #
-# Expects to be able to run Tanel Poder's findhomes.sh via sudo in /usr/local/bin - sudo rule is:
+# Expects to be able to run findhomes.sh via sudo in /usr/local/bin - sudo rule is:
 # oracle ALL=(root) NOPASSWD:/usr/local/bin/findhomes.sh
 #
-# findhomes.sh can be found at https://github.com/tanelpoder/tpt-oracle/blob/master/tools/unix/findhomes.sh
+# findhomes.sh can be found at https://github.com/acolvin/oracle-scripts/blob/master/os-scripts/findhomes.sh
 #
 # Script creates a separate log file for each database instance
 # Modify LOGFILE= variable if you don't like the name
 #
+# Version history
+#
+# 20200131 - initial release
+
 
 export OPEN_PDBS=0
-export VERSION_NUMBER=20191231
+export VERSION_NUMBER=20200131
 export VERBOSE=0
 export TEST_MODE=0
 export INSTANCES=`sudo findhomes.sh | grep ora_pmon| cut -f3 -d "_" | cut -f1 -d " "`
@@ -66,6 +70,7 @@ gather_oracle_env () {
   if [ $VERBOSE -eq 1 ]
   then
     printf "\n ORACLE_HOME=$ORACLE_HOME \n"
+    printf "ORACLE_SID=$ORACLE_SID \n"
   fi
 }
 
