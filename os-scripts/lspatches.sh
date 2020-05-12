@@ -10,7 +10,7 @@
 ORAINVENTORY=`grep loc /etc/oraInst.loc | cut -f2 -d"="`
 
 # Run opatch lspatches for each home
-for OH in `cat $ORAINVENTORY/ContentsXML/inventory.xml | sed -n "s/.*LOC=\"\(.*\)\"\ TYPE.*/\1/p" | sort -u`;
+for OH in `cat $ORAINVENTORY/ContentsXML/inventory.xml | grep -v REMOVED | sed -n "s/.*LOC=\"\(.*\)\"\ TYPE.*/\1/p" | sort -u`;
   do
     OWNER=`stat $OH | grep Uid | cut -f3 -d"/" | cut -f1 -d")"`
     printf '********************************************************************\n';
